@@ -30,4 +30,5 @@ if __name__ == '__main__':
     arm.connect()
     arm.update_firmware()
     arm.homing()
+
     arm.robot.terminate()
