@@ -25,19 +25,6 @@ class Robot:
         self.robot.home("j4")
 
 
-# robot = Dorna()
-# print(robot.port_list())
-# robot.update_firmware()
-# robot.connect()
-# print(robot.homed())
-# robot.home("j0")
-# robot.home("j1")
-# robot.home("j2")
-# robot.home("j3")
-# robot.home("j4")
-#
-# robot.terminate()
-
 if __name__ == '__main__':
     arm = Robot()
     arm.connect()
