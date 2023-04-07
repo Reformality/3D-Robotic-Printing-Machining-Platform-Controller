@@ -1,34 +1,100 @@
 from dorna import Dorna
+import time
+import json
+
+# Connect to Dorna
+
+configFile = "C:/Users/zwu22/Downloads/newConfig.yaml"
+robot = Dorna(configFile)
+a = robot.connect()
+parsed_json = json.loads(a)
+print(parsed_json)
+
+if parsed_json['connection'] == 2:
+    print("Status: Robot Object Created!")
+
+    # Homing
+    print("###### START HOMING ######")
+    print("Homing j0")
+    robot.home("j0")
+    print("Homing j1")
+    robot.home("j1")
+    print("Homing j2")
+    robot.home("j2")
+    print("Homing j3")
+    robot.home("j3")
+    print("###### END HOMING ######")
+
+    robot.set_toolhead({"x": 1.25})  # no tool
+
+    # Calibrate Position [90,0,0,0,0]
+    start = {"command": "move",
+             "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 0, "j2": 0, "j3": 0, "j4": 0}}
+    robot.play(start)
+
+    # Rotate j4 25 degrees
+    j4_arg = {"command": "move",
+             "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": 25}}
+    robot.play(j4_arg)
+
+    # Rotate j3 10 degrees
+    j3_arg = {"command": "move",
+             "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 10, "j4": 0}}
+    robot.play(j3_arg)
+
+    # Calibrate j3 to 0
+    robot.calibrate([90, 0, 0, 0, 0])
+
+    # walk line priming position [90, 30, -120, 0, 0]
+    start = {"command": "move",
+             "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 30, "j2": -120, "j3": 0, "j4": 0}}
+    robot.play(start)
+
+    # plate inner edge
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 7, "z": 1.5, "a": -90, "b": 0}}
+    robot.play(arg)
+
+    # plate outer edge
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 16, "z": 1.5, "a": -90, "b": 0}}
+    robot.play(arg)
+
+    # Rotate j4 45 degrees (+ rotate out)
+    j4_arg = {"command": "move",
+             "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": 45}}
+    robot.play(j4_arg)
+
+    # printer priming position [180, 50, -140, 0, 0]
+    arg = {"command": "move",
+             "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 45}}
+    robot.play(arg)
+
+    # 3D extruder drop prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -12.5, "y": 0, "z": 6.5, "a": -90, "b": 45}}
+    robot.play(arg)
+
+    # 3D extruder in
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -12.5, "y": 0, "z": 4.3, "a": -90, "b": 45}}
+    robot.play(arg)
+
+    # 3D extruder out
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -10.5, "y": 0, "z": 4.3, "a": -90, "b": 0}}
+    robot.play(arg)
+
+    robot.position()
+    robot.command()
 
 
-class Robot:
-    def __init__(self):
-        self.robot = Dorna()
 
-    def update_firmware(self):
-        self.robot.update_firmware()
+else:
+    print("ERROR: Robot Not Connected!")
 
-    def connect(self):
-        self.robot.connect()
-
-    def homing(self):
-        print("###### START HOMING ######")
-        print("Homing j0")
-        self.robot.home("j0")
-        print("Homing j1")
-        self.robot.home("j1")
-        print("Homing j2")
-        self.robot.home("j2")
-        print("Homing j3")
-        self.robot.home("j3")
-        print("Homing j4")
-        self.robot.home("j4")
+time.sleep(5)
+robot.terminate()
+print("Status: Robot process terminated!")
 
 
-if __name__ == '__main__':
-    arm = Robot()
-    arm.connect()
-    arm.update_firmware()
-    arm.homing()
-
-    arm.robot.terminate()
