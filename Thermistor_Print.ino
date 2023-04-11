@@ -1,15 +1,19 @@
 float Vo;
 float R1 = 100000;
-float R2, T;
+float R2, T, targetT;
 float R0 = 100000;
 float c1,c2;
 int sampleSize = 20;
 int sampleRate = 20;
 int Vreading;
 float sum = 0;
+int relay = 31;
+//volatile byte relayState = LOW;
 
 void setup() {
-Serial.begin(9600);
+  Serial.begin(9600);
+  pinMode(relay, OUTPUT);
+  digitalWrite(relay, HIGH);
 }
 
 void loop() {
@@ -40,6 +44,30 @@ void loop() {
   Serial.print(","); 
   Serial.println(T);
   //Serial.println(" C"); 
+  
+  // temp control logic
+  targetT = 204;
 
+  if(T < targetT) {
+    digitalWrite(relay, LOW);
+    Serial.println("Closed");
+  } 
+  else {
+    digitalWrite(relay, HIGH);
+    Serial.println("Open");
+  }
+  
+//  if(T < 
+
+  
+//  if(T<100){
+//    digitalWrite(relay, LOW);
+//    Serial.println("OFF");
+//  } else{
+//    digitalWrite(relay, HIGH);
+//    Serial.println("ON");
+//  }
+  
+  
   delay(500);
 }
