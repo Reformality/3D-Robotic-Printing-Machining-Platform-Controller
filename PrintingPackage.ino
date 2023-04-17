@@ -24,7 +24,11 @@ const int relayBed = 24;
 const int heatingStart = 52; //receive signal from dorna to start heating
 const int printStart = 53; //receive signal from dorna to start feeding filament
 const int tempReady = 50;
-const int ReadtempReady = 48;
+
+//other var
+bool tempReadyState = false;
+
+
 
 
 
@@ -39,6 +43,7 @@ void setup() {
   pinMode(printStart, INPUT);
   pinMode(tempReady, OUTPUT);
   digitalWrite(tempReady, LOW);
+  tempReadyState = false;
 }
 
 void loop() {
@@ -47,7 +52,8 @@ void loop() {
   Serial.print("printStart:");
   Serial.println(digitalRead(printStart));
   Serial.print("tempReady:");
-  Serial.println(digitalRead(tempReady));
+  // Serial.println(digitalRead(tempReady));
+  Serial.println(tempReadyState)
   
   if(digitalRead(heatingStart) == 1 || digitalRead(printStart) == 1){
     TE = heatingOF(targetTE, ThermistorE, relayExtruder);
@@ -62,7 +68,7 @@ void loop() {
     digitalWrite(relayBed, HIGH);
   }
   
-  if(((TE>(targetTE-10) && TB>(targetTBed-5) )||digitalRead(tempReady)==1)&&(digitalRead(heatingStart) == 1 || digitalRead(printStart) == 1)){// && TB>55
+  if(((TE>(targetTE-10) && TB>(targetTBed-5) )||tempReadyState)&&(digitalRead(heatingStart) == 1 || digitalRead(printStart) == 1)){// && TB>55
     digitalWrite(tempReady,HIGH);
   }
   else if(digitalRead(heatingStart) == 0 && digitalRead(printStart) == 0){
