@@ -54,6 +54,12 @@ def toolhead(robot):
 
 
 def calibrate(robot):
+    # Calibrate Prime Position [180, 50, -140, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -140, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
     # Calibrate Position [90,0,0,0,0]
     arg = {"command": "move",
            "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 0, "j2": 0, "j3": 0, "j4": 0}}
@@ -62,11 +68,24 @@ def calibrate(robot):
     print(robot.position())
     # Calibrate j3 and j4
     while True:
-        choice = input("[Calibrate] Choose: j3, j4, \"end\" to finish calibration, or \"q\" to quit:\n")
+        choice = input("[Calibrate] Choose: j3, j4, \"save\" to finish calibration, or \"q\" to quit:\n")
         if choice == "q":
+            # priming position [90, 30, -120, 0, 0]
+            arg = {"command": "move",
+                   "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 40, "j2": -130, "j3": 0,
+                           "j4": 0}}
+            job = robot.play(arg)
+            wait(robot, job)
             return
-        elif choice == "end":
+        elif choice == "save":
             robot.calibrate([90, 0, 0, 0, 0])
+            robot.save_config()
+            # priming position [90, 30, -120, 0, 0]
+            arg = {"command": "move",
+                   "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 40, "j2": -130, "j3": 0,
+                           "j4": 0}}
+            job = robot.play(arg)
+            wait(robot, job)
             return
         elif choice == "j3" or choice == "j4":
             angle = input("[Calibrate] type {} calibration angle:".format(choice))
@@ -116,7 +135,7 @@ def walk_line_hotpad(robot):
 
     # plate inner edge
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 7, "z": 1.5, "a": -90, "b": 180}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 8, "z": 1.5, "a": -90, "b": 180}}
     job = robot.play(arg)
     wait(robot, job)
     print("X:0, Y:7, Z:1.5, A:-90, B:0")
@@ -147,8 +166,8 @@ def walk_line_hotpad(robot):
     time.sleep(1)
 
 
-def printer_demo(robot):
-    # printer priming position [180, 50, -140, 0, 0]
+def printer_pickup(robot):
+    # printer priming position [180, 40, -130, 0, 0]
     arg = {"command": "move",
            "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 45}}
     job = robot.play(arg)
@@ -166,9 +185,9 @@ def printer_demo(robot):
     job = robot.play(arg)
     wait(robot, job)
 
-    # Rotate j4 45 degrees (+ rotate out)
+    # Rotate j4 -45 degrees (- rotate in)
     arg = {"command": "move",
-              "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": -45}}
+           "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": -45}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -181,10 +200,28 @@ def printer_demo(robot):
     # printer priming position [180, 50, -140, 0, 0]
     arg = {"command": "move",
            "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 0}}
-    robot.play(arg)
+    job = robot.play(arg)
+    wait(robot, job)
 
-    # PUT BACK
-    time.sleep(5)
+    # printer pad priming position, ready to print [90, 50, -130, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -130, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+
+def printer_putback(robot):
+    # printer pad priming position, ready to putback [180, 50, -130, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -130, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # printer priming position [180, 50, -140, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
 
     # 3D extruder out
     arg = {"command": "move",
@@ -194,13 +231,13 @@ def printer_demo(robot):
 
     # 3D extruder in
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -12.5, "y": 0, "z": 4.3, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -12.5, "y": 0, "z": 4.2, "a": -90, "b": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
     # Rotate j4 45 degrees (+ rotate out)
     arg = {"command": "move",
-              "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": 45}}
+           "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": 45}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -210,11 +247,129 @@ def printer_demo(robot):
     job = robot.play(arg)
     wait(robot, job)
 
-    # printer priming position [180, 50, -140, 0, 0]
+    # printer priming position [180, 40, -130, 0, 0]
     arg = {"command": "move",
-           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 0}}
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 180, "j1": 40, "j2": -130, "j3": 0, "j4": 45}}
     job = robot.play(arg)
     wait(robot, job)
+
+
+def gcode_read(robot):
+    with open("C:/Users/zwu22/Downloads/gcode_test3.gcode") as f:
+        content = f.readlines()
+
+    gc = []
+    job = None
+
+    for i in range(0, len(content)):
+        if content[i][0:3] == 'G00' or content[i][0:3] == 'G01':
+            gc.append("G91")
+            # gc.append("F 60")
+            gc.append(content[i])
+
+    for l in gc:
+        tmp = {"gc": l}
+        job = robot.gcode(tmp)
+
+    wait(robot, job)
+    print("job finished!")
+
+
+def extrude_heat(robot):
+    heat_prm = {"command": "set_io", "prm": {"out1": 1, "out2": 0}}
+    robot.play(heat_prm)
+    # io_out = robot.io()
+    # io_out = json.loads(io_out)
+    # time.sleep(1)
+    # print(io_out)
+    # while io_out["in1"] == 0:  # wait for in_out signal from arduino, 0 = temp not ready, 1 = temp ready
+    #     # print(io_out["in1"])
+    #     time.sleep(0.1)
+    #     io_out = robot.io()
+    #     io_out = json.loads(io_out)
+    print("continue when temp is ready")
+
+
+def extrude_print(robot):
+    heat_and_step_prm = {"command": "set_io", "prm": {"out1": 0, "out2": 1}}
+    robot.play(heat_and_step_prm)
+
+
+def extrude_cool(robot):
+    prm = {"command": "set_io", "prm": {"out1": 0, "out2": 0}}
+    robot.play(prm)
+
+
+def print_test(robot):
+    # printer pad priming position, ready to print [180, 50, -140, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -130, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # drop prepare XYZ[0,11,6]
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 11, "z": 6, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # drop XYZ[0,11,5.22]
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 0, "y": 11, "z": 5.25, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    extrude_print(robot)  # start extruding
+    time.sleep(2)
+
+    gcode_read(robot) # run gcode
+
+    # temp
+    heat_prm = {"command": "set_io", "prm": {"out1": 1, "out2": 0}}
+    robot.play(heat_prm)
+    time.sleep(2)
+
+    # printer pad priming position, ready to print [180, 50, -140, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -130, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+
+def drill_pickup(robot):
+    # Drill priming position [180, 40, -130, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 135, "j1": 40, "j2": -130, "j3": 0, "j4": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop in
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 3.4, "a": -90, "b": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Rotate j4 -45 degrees (- rotate in)
+    j4_arg = {"command": "move",
+              "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": -45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+
+
+
 
 
 def main():
@@ -233,9 +388,15 @@ def main():
         return
     print("## END CONNECT ##\n")
 
+    # init io modes
+    io_init = {"command": "set_io", "prm": {"out1": 0, "out2": 0, "out3": 0, "out4": 0}}
+    robot.play(io_init)
+    print("Reset IO\n")
+
     while True:
-        method = input("\nEnter the method you would like to run. \n "
-                       "homing, homed, toolhead, calibrate, terminate, position, walkline, printer_demo, q (quit)\n")
+        method = input("\nEnter the method you would like to run.\n "
+                       "homing, homed, toolhead, calibrate, terminate, position, walkline\n"
+                       "Printer control: printer_demo, printer_pickup, printer_putback, gcode\n")
         if method == 'q':
             return
         elif method == 'homing':
@@ -254,8 +415,16 @@ def main():
             print("xyz: ", robot.position("xyz"))
         elif method == 'walkline':
             walk_line_hotpad(robot)
-        elif method == 'printer_demo':
-            printer_demo(robot)
+        elif method == 'printer_pickup':
+            printer_pickup(robot)
+        elif method == 'printer_putback':
+            printer_putback(robot)
+        elif method == 'heat':
+            extrude_heat(robot)
+        elif method == 'print':
+            print_test(robot)
+        elif method == 'cool':
+            extrude_cool(robot)
         else:
             print("Invalid method:", method)
 
