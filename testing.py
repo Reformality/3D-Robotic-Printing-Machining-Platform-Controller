@@ -56,7 +56,7 @@ def toolhead(robot):
 def calibrate(robot):
     # Calibrate Prime Position [180, 50, -140, 0, 0]
     arg = {"command": "move",
-           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 50, "j2": -140, "j3": 0, "j4": 0}}
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 90, "j1": 40, "j2": -130, "j3": 0, "j4": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -322,7 +322,7 @@ def print_test(robot):
     extrude_print(robot)  # start extruding
     time.sleep(2)
 
-    gcode_read(robot) # run gcode
+    gcode_read(robot)  # run gcode
 
     # temp
     heat_prm = {"command": "set_io", "prm": {"out1": 1, "out2": 0}}
@@ -345,7 +345,7 @@ def drill_pickup(robot):
 
     # Drill pick up drop prime
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 45}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 45}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -356,20 +356,122 @@ def drill_pickup(robot):
     wait(robot, job)
 
     # Rotate j4 -45 degrees (- rotate in)
-    j4_arg = {"command": "move",
-              "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": -45}}
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": -45}}
     job = robot.play(arg)
     wait(robot, job)
 
     # Drill pick up drop prime
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill rotated priming position [180, 40, -130, 90, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 500, "j0": 135, "j1": 30, "j2": -100, "j3": 90, "j4": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
 
+def drill_putback(robot):
+    # Drill rotated priming position [180, 40, -130, 90, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 1000, "j0": 135, "j1": 30, "j2": -100, "j3": 90, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop in
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -10, "y": 10, "z": 3.4, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Rotate j4 45 degrees (+ rotate out)
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 1, "speed": 2000, "j0": 0, "j1": 0, "j2": 0, "j3": 0, "j4": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill pick up drop prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 240, "x": -10, "y": 10, "z": 5.5, "a": -90, "b": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # Drill priming position [180, 40, -130, 0, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 2000, "j0": 135, "j1": 40, "j2": -130, "j3": 0, "j4": 45}}
+    job = robot.play(arg)
+    wait(robot, job)
 
 
+def drill_test(robot):
+    # Drill rotated priming position [135, 40, -130, 90, 0]
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 500, "j0": 135, "j1": 30, "j2": -100, "j3": 90, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # drill toolhead setting change
+    # from '[135, 30, -100, 90.0, 0.0]' to j3=0;
+    robot.calibrate([135, 30, -100, 0.0, 0.0])
+    robot.set_toolhead({"x": 3})  # drill head
+
+    # drill starting prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": 10.7, "z": 5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # drill starting point
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": 10.7, "z": 3.5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # ----- START DRILLING -----
+    drill_speed = 30
+    # ask user to turn on the drill
+    drill_running = input("[ACTION] Please turn on the drill now!\nPress \"y\" to start, \"q\" to abort\n")
+    if drill_running == "y":
+        print("[WARING]Starting in 5 seconds!!")
+        time.sleep(5)
+    elif drill_running == "q":
+        return
+
+    # drill finish point
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": drill_speed, "x": -2, "y": 10.7, "z": 3.5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # ask user to turn off the drill
+    print("[ACTION] Please turn off the drill now!")
+    time.sleep(5)
+    # ----- END DRILLING -----
+
+    # drill finish prime
+    arg = {"command": "move",
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -2, "y": 10.7, "z": 5, "a": -90, "b": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # putback position
+    arg = {"command": "move",
+           "prm": {"path": "joint", "movement": 0, "speed": 1000, "j0": 135, "j1": 30, "j2": -100, "j3": 0, "j4": 0}}
+    job = robot.play(arg)
+    wait(robot, job)
+
+    # set toolhead back to nohead
+    robot.calibrate([135, 30, -100, 90, 0.0])
+    robot.set_toolhead({"x": 1.25})  # no tool
 
 
 def main():
@@ -396,7 +498,8 @@ def main():
     while True:
         method = input("\nEnter the method you would like to run.\n "
                        "homing, homed, toolhead, calibrate, terminate, position, walkline\n"
-                       "Printer control: printer_demo, printer_pickup, printer_putback, gcode\n")
+                       "Printer control: printer_pickup, printer_putback, print\n"
+                       "Drill control: drill_pickup, drill_putback, drill\n")
         if method == 'q':
             return
         elif method == 'homing':
@@ -425,6 +528,12 @@ def main():
             print_test(robot)
         elif method == 'cool':
             extrude_cool(robot)
+        elif method == 'drill_pickup':
+            drill_pickup(robot)
+        elif method == 'drill_putback':
+            drill_putback(robot)
+        elif method == 'drill':
+            drill_test(robot)
         else:
             print("Invalid method:", method)
 
