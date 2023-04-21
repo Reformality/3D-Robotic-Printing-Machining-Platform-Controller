@@ -15,11 +15,11 @@ def is_integer(string):
 def wait(robot, job):
     parsed_json = json.loads(job)
     job_id = parsed_json[0]["id"]
-    print("[wait] Working on job id={}".format(job_id))
+    # print("[wait] Working on job id={}".format(job_id))
     while parsed_json[0]['state'] != 2:
         time.sleep(0.1)
         parsed_json = json.loads(robot.command({"id": job_id}))
-    print("[Wait] Work Done!\n")
+    # print("[Wait] Work Done!\n")
 
 
 def homing(robot):
@@ -413,6 +413,11 @@ def drill_putback(robot):
 
 
 def drill_test(robot):
+    # var for drilling position
+    drill_y = 10.62
+    drill_z = 3.3
+    drill_z_p = 5
+
     # Drill rotated priming position [135, 40, -130, 90, 0]
     arg = {"command": "move",
            "prm": {"path": "joint", "movement": 0, "speed": 500, "j0": 135, "j1": 30, "j2": -100, "j3": 90, "j4": 0}}
@@ -426,18 +431,39 @@ def drill_test(robot):
 
     # drill starting prime
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": 10.7, "z": 5, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": drill_y, "z": drill_z_p, "a": -90, "b": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
     # drill starting point
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": 10.7, "z": 3.5, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": drill_y, "z": drill_z, "a": -90, "b": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
+    # ask user if the feed is enough
+    while True:
+        user_input = input("[ACTION] Adjust Y by 0.01 in. + or - , \"q\" to exit\n")
+        if user_input == "+":
+            drill_y = drill_y + 0.01
+        elif user_input == "-":
+            drill_y = drill_y - 0.01
+        elif user_input == "q":
+            break
+        else:
+            print("Invalid input!\n")
+            continue
+        # move to adjusted position
+        arg = {"command": "move",
+               "prm": {"path": "line", "movement": 0, "speed": 120, "x": 2, "y": drill_y, "z": drill_z, "a": -90,
+                       "b": 0}}
+        job = robot.play(arg)
+        wait(robot, job)
+
+
+
     # ----- START DRILLING -----
-    drill_speed = 30
+    drill_speed = 10
     # ask user to turn on the drill
     drill_running = input("[ACTION] Please turn on the drill now!\nPress \"y\" to start, \"q\" to abort\n")
     if drill_running == "y":
@@ -448,7 +474,7 @@ def drill_test(robot):
 
     # drill finish point
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": drill_speed, "x": -2, "y": 10.7, "z": 3.5, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": drill_speed, "x": -2, "y": drill_y, "z": drill_z, "a": -90, "b": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -459,7 +485,7 @@ def drill_test(robot):
 
     # drill finish prime
     arg = {"command": "move",
-           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -2, "y": 10.7, "z": 5, "a": -90, "b": 0}}
+           "prm": {"path": "line", "movement": 0, "speed": 120, "x": -2, "y": drill_y, "z": drill_z_p, "a": -90, "b": 0}}
     job = robot.play(arg)
     wait(robot, job)
 
@@ -498,7 +524,7 @@ def main():
     while True:
         method = input("\nEnter the method you would like to run.\n "
                        "homing, homed, toolhead, calibrate, terminate, position, walkline\n"
-                       "Printer control: printer_pickup, printer_putback, print\n"
+                       "Printer control: printer_pickup, printer_putback, print, test_print\n"
                        "Drill control: drill_pickup, drill_putback, drill\n")
         if method == 'q':
             return
@@ -524,6 +550,8 @@ def main():
             printer_putback(robot)
         elif method == 'heat':
             extrude_heat(robot)
+        elif method == 'test_print':
+            extrude_print(robot)
         elif method == 'print':
             print_test(robot)
         elif method == 'cool':
